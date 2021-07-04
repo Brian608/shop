@@ -16,9 +16,9 @@ public class orderController {
 
     @Autowired
     private RestTemplate restTemplate;
-    @RequestMapping("/create/order")
-    public String createOrder(String  userid,String productId){
-        String productName = restTemplate.getForObject("http://127.0.0.1:9000/product/" + productId, String.class);
-        return  "用户ID:"+userid+",商品ID:"+productName;
+    @RequestMapping("/order/create")
+    public String createOrder(Integer productId,String userId){
+        String result = restTemplate.getForObject("http://stock-service/stock/reduce/" + productId, String.class);
+        return result;
     }
 }
