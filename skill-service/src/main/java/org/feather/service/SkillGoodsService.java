@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.beans.Transient;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * @program: EShopParent
@@ -26,19 +27,37 @@ public class SkillGoodsService {
     public  static  final String SKILL_GOODS_LIST="SKILL_GOODS_LIST";
 
     public  static  final String SKILL_GOODS_ONLY="SKILL_GOODS_ONLY";
+//库存队列
+    public static  final String SKILL_GOODS_QUEUE="SKILL_GOODS_QUEUE";
     @Autowired
     private RedisTemplate redisTemplate;
 
 
     @Autowired
     private MutilThreadOrder mutilThreadOrder;
+    
+    @Autowired
+    private ProductService productService;
 
     @Transactional
     public  void  add(Long productId,String  userId) throws Exception {
+        //测试超卖问题，将userId随时更新
+        userId= UUID.randomUUID().toString();
         //判断用户是否参加过抢单
         Long increment = redisTemplate.boundHashOps(SKILL_GOODS_ONLY).increment(userId, 1L);
         if (increment>1){
             throw  new Exception("重复抢单");
+        }
+     Long stockId=  (Long) redisTemplate.boundListOps(SKILL_GOODS_QUEUE+productId).rightPop();
+        if (stockId==null){
+            System.out.println("该商品已被，秒杀完毕");
+            //删除用户的排队信息
+            redisTemplate.boundHashOps(SKILL_GOODS_ONLY).delete(userId);
+            //将商品从redis中删除
+            SkillGoods skillGoods = productService.queryByProductId(productId);
+            redisTemplate.boundHashOps(SkillGoodsService.SKILL_GOODS_PHONE).delete(skillGoods.getId());
+            productService.update(skillGoods);
+            return;
         }
         //先封装对象，放入redis队列
         SkillEntity skillEntity = new SkillEntity();

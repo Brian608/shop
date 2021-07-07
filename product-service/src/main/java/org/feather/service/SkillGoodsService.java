@@ -25,6 +25,9 @@ public class SkillGoodsService {
 
     public static  final String SKILL_GOODS_PHONE="SKILL_GOODS_PHONE";
 
+    //库存队列
+    public static  final String SKILL_GOODS_QUEUE="SKILL_GOODS_QUEUE";
+
     @Autowired
     private SkillGoodsRepository skillGoodsRepository;
 
@@ -51,6 +54,8 @@ public class SkillGoodsService {
             for (SkillGoods skillGood:
                  list) {
                 redisTemplate.boundHashOps(SKILL_GOODS_PHONE).put(skillGood.getId(),skillGood);
+                //库存队列防止超卖
+                redisTemplate.boundListOps(SKILL_GOODS_QUEUE+skillGood.getId()).leftPushAll(convertToArray(skillGood.getStockCount(),skillGood.getId()));
             }
         }
         //查询当前缓存中所有的商品信息
@@ -61,6 +66,15 @@ public class SkillGoodsService {
             System.out.println(skillGood.getName()+"库存剩余"+skillGood.getStockCount());
         }
     }
+
+    private Object convertToArray(Integer stockCount, Long id) {
+        Long [] idsLong=new Long[stockCount];
+        for (int i=0;i<stockCount;i++){
+            idsLong[i]=id;
+        }
+        return idsLong;
+    }
+
     //提供商品信息的方法
     public  SkillGoods queryProduct(Long productId){
         return (SkillGoods) redisTemplate.boundHashOps(SKILL_GOODS_PHONE).get(productId);

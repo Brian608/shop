@@ -44,7 +44,6 @@ public class MutilThreadOrder {
         if (skillGoods==null){
             throw  new Exception("商品已经被秒杀光了");
         }
-        if (skillGoods.getStockCount()>0){
             SkillOrder skillOrder=new SkillOrder();
             skillOrder.setMoney(skillGoods.getCostPrice());
             skillOrder.setPaytime(new Date());
@@ -56,10 +55,11 @@ public class MutilThreadOrder {
             skillGoods.setStockCount(skillGoods.getStockCount()-1);
             redisTemplate.boundHashOps(SkillGoodsService.SKILL_GOODS_PHONE).put(skillGoods.getId(),skillGoods);
             System.out.println("秒杀成功，剩余库存为："+skillGoods.getStockCount());
-        }
-        if (skillGoods.getStockCount()<=0){
+          Long stockCount=  redisTemplate.boundListOps(SkillGoodsService.SKILL_GOODS_QUEUE).size();
+        if (stockCount<=0){
             System.out.println("库存已经是负数了"+skillGoods.getStockCount());
             redisTemplate.boundHashOps(SkillGoodsService.SKILL_GOODS_PHONE).delete(skillGoods.getId());
+            skillGoods.setStockCount(stockCount.intValue());
             productService.update(skillGoods);
         }
 
