@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+import java.beans.Transient;
 import java.util.Date;
 
 /**
@@ -22,19 +24,22 @@ public class SkillGoodsService {
     public  static  final String SKILL_GOODS_PHONE="SKILL_GOODS_PHONE";
 
     public  static  final String SKILL_GOODS_LIST="SKILL_GOODS_LIST";
+
+    public  static  final String SKILL_GOODS_ONLY="SKILL_GOODS_ONLY";
     @Autowired
     private RedisTemplate redisTemplate;
 
-    @Autowired
-    private SkillOrderRepository skillOrderRepository;
-
-    @Autowired
-    private ProductService productService;
 
     @Autowired
     private MutilThreadOrder mutilThreadOrder;
 
+    @Transactional
     public  void  add(Long productId,String  userId) throws Exception {
+        //判断用户是否参加过抢单
+        Long increment = redisTemplate.boundHashOps(SKILL_GOODS_ONLY).increment(userId, 1L);
+        if (increment>1){
+            throw  new Exception("重复抢单");
+        }
         //先封装对象，放入redis队列
         SkillEntity skillEntity = new SkillEntity();
         skillEntity.setProductId(productId);
