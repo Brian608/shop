@@ -20,7 +20,7 @@ public class SkillController {
     public  String skill(Long productId,String userId){
         try {
             skillGoodsService.add(productId,userId);
-           return  "秒杀成功";
+           return  "抢单成功";
         } catch (Exception e) {
             return  e.getMessage();
         }
