@@ -1,8 +1,9 @@
 package org.feather.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.feather.entity.SkillGoods;
+import org.feather.service.SkillGoodsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @program: EShopParent
@@ -13,8 +14,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class productController {
 
+    @Autowired
+    private SkillGoodsService skillGoodsService;
+
     @GetMapping("/product/{productId}")
-    public  String getProduct(@PathVariable Integer productId){
-        return "mac book"+productId;
+    public SkillGoods getProduct(@PathVariable Long productId){
+        System.out.println("调用商品服务");
+        return skillGoodsService.queryProduct(productId);
+    }
+
+    @PostMapping("/product/update")
+    public  String update(@RequestBody  SkillGoods skillGoods){
+        skillGoodsService.updateProduct(skillGoods);
+        return  "更新库存成功";
     }
 }

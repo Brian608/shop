@@ -2,6 +2,7 @@ package org.feather;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -28,6 +29,7 @@ public class SkillApplication {
         return  template;
     }
     @Bean
+    @LoadBalanced
     public RestTemplate restTemplate(){
         return  new RestTemplate();
     }
