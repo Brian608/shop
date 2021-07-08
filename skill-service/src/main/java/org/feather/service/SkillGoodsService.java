@@ -48,17 +48,6 @@ public class SkillGoodsService {
         if (increment>1){
             throw  new Exception("重复抢单");
         }
-     Long stockId=  (Long) redisTemplate.boundListOps(SKILL_GOODS_QUEUE+productId).rightPop();
-        if (stockId==null){
-            System.out.println("该商品已被，秒杀完毕");
-            //删除用户的排队信息
-            redisTemplate.boundHashOps(SKILL_GOODS_ONLY).delete(userId);
-            //将商品从redis中删除
-            SkillGoods skillGoods = productService.queryByProductId(productId);
-            redisTemplate.boundHashOps(SkillGoodsService.SKILL_GOODS_PHONE).delete(skillGoods.getId());
-            productService.update(skillGoods);
-            return;
-        }
         //先封装对象，放入redis队列
         SkillEntity skillEntity = new SkillEntity();
         skillEntity.setProductId(productId);
